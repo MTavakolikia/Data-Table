@@ -218,7 +218,7 @@ const DataTable = ({
   }
   if (error) return <h1>something went wrong {error}</h1>;
   return (
-    <div className="dark:bg-slate-700 h-screen p-10">
+    <div className="p-10">
       <FileUploader csvDataCallback={csvData} jsonDataCallback={jsonData} />
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg p-5 dark:bg-slate-800">
         <div className="flex items-center justify-between py-4 bg-white dark:bg-gray-800">
