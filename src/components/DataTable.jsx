@@ -6,6 +6,7 @@ import InputSearch from "./InputSearch";
 import ShowItemsCount from "./ShowItemsCount";
 import ItemsPerPage from "./ItemsPerPage";
 import Pagination from "./Pagination";
+import FileUploader from "./FileUploader";
 // import TableOptions from "./TableOptions";
 
 const DataTable = ({
@@ -68,12 +69,19 @@ const DataTable = ({
   };
 
   const sortedData = [...data].sort((a, b) => {
-    if (sortColumn === "id") {
-      return sortOrder === "asc" ? a.id - b.id : b.id - a.id;
-    } else if (sortColumn === "firstName") {
-      return sortOrder === "asc"
-        ? a.firstName.localeCompare(b.firstName)
-        : b.firstName.localeCompare(a.firstName);
+    if (sortColumn) {
+      const valueA = a[sortColumn];
+      const valueB = b[sortColumn];
+
+      if (typeof valueA === "string" && typeof valueB === "string") {
+        return sortOrder === "asc"
+          ? valueA.localeCompare(valueB)
+          : valueB.localeCompare(valueA);
+      } else {
+        return sortOrder === "asc" ? valueA - valueB : valueB - valueA;
+      }
+    } else {
+      return 0;
     }
   });
 
@@ -165,7 +173,12 @@ const DataTable = ({
   //     )
   //   );
   // };
-
+  const jsonData = (e) => {
+    setData(e);
+  };
+  const csvData = (e) => {
+    setData(e);
+  };
   function renderTableHeader(column) {
     return (
       <th
@@ -205,7 +218,8 @@ const DataTable = ({
   }
   if (error) return <h1>something went wrong {error}</h1>;
   return (
-    <div className="dark:bg-slate-700 h-full p-10">
+    <div className="dark:bg-slate-700 h-screen p-10">
+      <FileUploader csvDataCallback={csvData} jsonDataCallback={jsonData} />
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg p-5 dark:bg-slate-800">
         <div className="flex items-center justify-between py-4 bg-white dark:bg-gray-800">
           {activeSearchBar && (
@@ -219,6 +233,7 @@ const DataTable = ({
             <CsvDownloader handleCsvDownload={handleCsvDownload} />
           )}
         </div>
+
         {!isLoading ? (
           <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
