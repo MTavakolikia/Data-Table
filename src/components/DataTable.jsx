@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
@@ -7,7 +8,7 @@ import ShowItemsCount from "./ShowItemsCount";
 import ItemsPerPage from "./ItemsPerPage";
 import Pagination from "./Pagination";
 import FileUploader from "./FileUploader";
-// import TableOptions from "./TableOptions";
+import TableOptions from "./TableOptions";
 
 const DataTable = ({
   activeCsvDl = true,
@@ -20,9 +21,7 @@ const DataTable = ({
 }) => {
   const [data, setData] = useState([]);
   const [originalData, setOriginalData] = useState([]);
-
   const [error, setError] = useState(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -30,13 +29,14 @@ const DataTable = ({
   const [isLoading, setLoading] = useState(true);
   const [sortColumn, setSortColumn] = useState(null);
   const [sortOrder, setSortOrder] = useState(null);
-  // const [optionsData, setOptionsData] = useState([
-  //   { value: "pagination", label: "pagination", isChecked: true },
-  //   { value: "row_count", label: "Row Count", isChecked: true },
-  //   { value: "table_stats", label: "Table Stats", isChecked: true },
-  //   { value: "search", label: "Search", isChecked: true },
-  //   { value: "csv_download", label: "CSV Download", isChecked: true },
-  // ]);
+
+  const [optionsData, setOptionsData] = useState([
+    { value: "pagination", label: "pagination", isChecked: true },
+    { value: "row_count", label: "Row Count", isChecked: true },
+    { value: "table_stats", label: "Table Stats", isChecked: true },
+    { value: "search", label: "Search", isChecked: true },
+    { value: "csv_download", label: "CSV Download", isChecked: true },
+  ]);
 
   useEffect(() => {
     if (tableData.length != 0) {
@@ -46,10 +46,26 @@ const DataTable = ({
     } else {
       fetchData();
     }
+    // if (data.length > 0) {
+    //   // setOptionsData(Object.keys(data[0]));
+    //   console.log(data);
+    //   console.log(Object.keys(data[0]));
+    // }
   }, []);
 
   useEffect(() => {
     handleSelectedItems();
+    if (data.length > 0) {
+      // const columns = Object.keys(data[0]);
+      const cols = columns.length > 0 ? columns : Object.keys(data[0]);
+      setOptionsData(
+        cols.map((col) => ({
+          value: col,
+          label: col,
+          isChecked: true,
+        }))
+      );
+    }
   }, [data]);
 
   useEffect(() => {
@@ -88,6 +104,7 @@ const DataTable = ({
   if (data.length > 0) {
     var keys = Object.keys(data[0]);
   }
+
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = parseInt(startIndex) + parseInt(itemsPerPage);
   const filteredData = sortedData.filter((item) =>
@@ -142,6 +159,7 @@ const DataTable = ({
     link.click();
     document.body.removeChild(link);
   };
+
   const handleCsvDownload = () => {
     if (selectedItems.length === 0)
       return alert("please select at least one item");
@@ -164,34 +182,38 @@ const DataTable = ({
     setData(checkAllItems);
   };
 
-  // const handleToggle = (selectedItem) => {
-  //   setOptionsData((prevOptionsData) =>
-  //     prevOptionsData.map((item) =>
-  //       item.value === selectedItem
-  //         ? { ...item, isChecked: !item.isChecked }
-  //         : item
-  //     )
-  //   );
-  // };
+  const handleToggleColumns = (selectedItem) => {
+    setOptionsData((prevOptionsData) =>
+      prevOptionsData.map((item) =>
+        item.value === selectedItem
+          ? { ...item, isChecked: !item.isChecked }
+          : item
+      )
+    );
+    console.log(optionsData);
+  };
+
   const jsonData = (e) => {
     setData(e);
   };
+
   const csvData = (e) => {
     setData(e);
   };
+
   function renderTableHeader(column) {
     return (
       <th
-        key={column}
+        key={column.value}
         scope="col"
-        className={`px-6 py-3 cursor-pointer ${
-          column === "isChecked" && "hidden"
+        className={`px-6 py-4 cursor-pointer ${
+          column.value === "isChecked" && "hidden"
         }`}
-        onClick={() => handleSort(column)}
+        onClick={() => handleSort(column.value)}
       >
         <div className="flex items-center">
-          <p>{column}</p>
-          {sortColumn === column && (
+          <p>{column.label}</p>
+          {sortColumn === column.value && (
             <span className="ml-1">
               {sortOrder === "asc" ? (
                 <svg
@@ -216,19 +238,28 @@ const DataTable = ({
       </th>
     );
   }
+
   if (error) return <h1>something went wrong {error}</h1>;
   return (
     <div className="p-10">
       <FileUploader csvDataCallback={csvData} jsonDataCallback={jsonData} />
       <div className="relative overflow-x-auto shadow-md sm:rounded-lg p-5 dark:bg-slate-800">
         <div className="flex items-center justify-between py-4 bg-white dark:bg-gray-800">
-          {activeSearchBar && (
-            <InputSearch
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+          <div className="flex items-center gap-2">
+            {activeSearchBar && (
+              <InputSearch
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+              />
+            )}
+            <TableOptions
+              data={optionsData}
+              searchBtn
+              handleToggle={handleToggleColumns}
+              dropDownTitle="Columns"
             />
-          )}
-          {/* <TableOptions data={optionsData} handleToggle={handleToggle} /> */}
+          </div>
+
           {activeCsvDl && (
             <CsvDownloader handleCsvDownload={handleCsvDownload} />
           )}
@@ -242,12 +273,13 @@ const DataTable = ({
                   <input
                     onChange={(e) => handleCheckAllItems(e.target.checked)}
                     type="checkbox"
-                    className="cursor-pointer"
+                    className="cursor-pointer w-4 h-4"
                   />
                 </th>
-                {columns.length > 0
-                  ? columns.map(renderTableHeader)
-                  : Object.keys(data[0]).map(renderTableHeader)}
+                {optionsData &&
+                  optionsData.map(
+                    (item) => item.isChecked && renderTableHeader(item)
+                  )}
               </tr>
             </thead>
 
@@ -268,14 +300,21 @@ const DataTable = ({
                       />
                     </div>
                   </td>
-                  {Object.keys(item).map((key) => (
-                    <td
-                      key={key}
-                      className={`px-6 py-4 ${key === "isChecked" && "hidden"}`}
-                    >
-                      {item[key]}
-                    </td>
-                  ))}
+                  {Object.keys(item).map(
+                    (key) =>
+                      optionsData.find(
+                        (option) => option.value === key && option.isChecked
+                      ) && (
+                        <td
+                          key={key}
+                          className={`px-6 py-4 ${
+                            key === "isChecked" && "hidden"
+                          }`}
+                        >
+                          {item[key]}
+                        </td>
+                      )
+                  )}
                 </tr>
               ))}
             </tbody>
