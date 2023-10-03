@@ -287,7 +287,9 @@ const DataTable = ({
               {currentData?.map((item) => (
                 <tr
                   key={item.id}
-                  className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                  className={`bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ${
+                    item.isChecked && "bg-gray-50 dark:bg-gray-600"
+                  }`}
                 >
                   <td className="w-4 p-4">
                     <div className="flex items-center">
